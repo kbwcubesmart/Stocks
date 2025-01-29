@@ -1,31 +1,188 @@
+/* General Styles */
+body {
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f9;
+  color: #333;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+/* Container */
 .stock-table-container {
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  max-width: 1300px;
+  margin: 20px auto;
+  padding: 20px;
+}
+
+.date-picker {
+  padding: 20px;
+}
+
+/* Sector Buttons */
+.sector-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.sector-buttons button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.sector-buttons button.active {
+  background-color: #4caf50;
+  transform: scale(1.05);
+}
+
+.sector-buttons button:hover {
+  background-color: #45a049;
+}
+
+/* Industry Buttons */
+.industry-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.industry-buttons button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.industry-buttons button.active {
+  background-color: #2980b9;
+  transform: scale(1.05);
+}
+.filters-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.industry-dropdown {
+  flex: 1;
+}
+
+.date-picker {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.industry-buttons button:hover {
+  background-color: #2980b9;
+}
+
+/* Stock Table */
+.stock-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  border-radius: 8px;
+  table-layout: fixed;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.stock-table thead {
+  background-color: #345e3a;
+  color: white;
+  text-align: left;
+}
+
+.stock-table th,
+.stock-table td {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.stock-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.stock-table tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+.stock-table th {
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.stock-table td {
+  color: #555;
+  vertical-align: middle;
+}
+
+/* Highlight for Market Cap */
+.stock-table td:nth-child(7) {
+  font-weight: bold;
+  color: #e74c3c;
+}
+
+/* No Data Row */
+.stock-table tbody tr td[colspan='8'] {
+  text-align: center;
+  font-style: italic;
+  color: #999;
+  background-color: #fdfdfd;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sector-buttons button,
+  .industry-buttons button {
+    font-size: 14px;
+    padding: 8px 16px;
   }
-  
-  .stock-table {
-    width: 100%;
-    border-collapse: collapse;
+
+  .stock-table-container {
+    padding: 15px;
   }
-  
-  .stock-table th, .stock-table td {
-    padding: 10px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-  }
-  
-  .stock-table th {
-    background-color: #4caf50;
-    color: white;
-  }
-  
-  .stock-table tr:hover {
-    background-color: #f1f1f1;
-  }
-  
+
+  .stock-table th,
   .stock-table td {
+    font-size: 12px;
+    padding: 10px;
+  }
+
+  .stock-table h4 {
     font-size: 14px;
   }
-  
+
+  /* Adjust flex layout for smaller screens */
+  .industry-buttons {
+    justify-content: flex-start;
+  }
+
+  .sector-buttons {
+    justify-content: flex-start;
+  }
+}
