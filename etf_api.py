@@ -1,13 +1,13 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import yfinance as yf
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app)  
 
-# Define CUSIP mapping
+
 cusip_mapping = (
-    "NVDA", "AAPL", "MSFT", "GOOG", "AMZN", "GOOGL", "META", "TSLA", "AVGO", "BRK.B",
+    "NVDA", "AAPL", "MSFT", "GOOG", "AMZN", "GOOGL", "META", "TSLA", "AVGO", "BRK-B",
     "WMT", "JPM", "LLY", "V", "XOM", "MA", "UNH", "ORCL", "COST", "HD", "PG", "NFLX",
     "JNJ", "BAC", "CRM", "ABBV", "CVX", "KO", "WFC", "TMUS", "MRK", "CSCO", "NOW",
     "AXP", "ACN", "BX", "MS", "TMO", "ISRG", "GS", "LIN", "IBM", "PEP", "GE", "ABT",
@@ -60,39 +60,49 @@ cusip_mapping = (
 def get_etf_data():
     imported = 0
     try:
-        sector_data = {}  # Dictionary to store data grouped by sector
+        print(request)
+        sector_data = {}
+        selected_date = request.args.get('date')
 
         for symbol in cusip_mapping:
-            print(symbol)
             stock = yf.Ticker(symbol)
-            history = stock.history(period="5d", interval="1d")  # Get last 5 days of data
-            print('stock', stock)
+            history = stock.history(period="5d", interval="1d")  # Fetch data for the last 5 days
 
-            # Ensure we have at least 2 days of data
-            if len(history) >= 2:
-                current_price = history.iloc[-1]['Close']
-                yesterday_price = history.iloc[-2]['Close']
-            elif len(history) == 1:
-                current_price = history.iloc[-1]['Close']
-                yesterday_price = "N/A"
-            else:
-                current_price = "N/A"
-                yesterday_price = "N/A"
+            # Convert the index (dates) to strings for easier comparison
+            if not history.empty:
+                history.index = history.index.strftime('%Y-%m-%d')
 
-            # Retrieve stock information
+            # Extract closing prices as a dictionary
+            closing_prices = history['Close'].to_dict() if not history.empty else {}
+
+            # Get the price for the selected date
+            date_price = closing_prices.get(selected_date, "N/A") if selected_date else "N/A"
+
+            # Get today's price (last available price)
+            today_price = list(closing_prices.values())[-1] if closing_prices else "N/A"
+
+            # Get yesterday's price (second last available price)
+            yesterday_price = (
+                list(closing_prices.values())[-2] if len(closing_prices) >= 2 else "N/A"
+            )
+
+            # Add stock info including closing prices, today's price, and yesterday's price
             stock_info = {
                 "name": stock.info.get("shortName", "N/A"),
                 "symbol": symbol,
                 "sector": stock.info.get("sector", "N/A"),
                 "industry": stock.info.get("industry", "N/A"),
-                "current_price": current_price,
-                "yesterday_price": yesterday_price,
+                "selected_date": selected_date,
+                "date_price": date_price,  # Price on the selected date
+                "today_price": today_price,  # Today's price
+                "yesterday_price": yesterday_price,  # Yesterday's price
+                "closing_prices": closing_prices,  # Include last 5 days' closing prices
                 "market_cap": stock.info.get("marketCap", "N/A"),
                 "pe_ratio": stock.info.get("trailingPE", "N/A"),
                 "dividend_yield": stock.info.get("dividendYield", "N/A"),
             }
 
-            # Group stock by sector
+            # Group data by sector
             sector = stock.info.get("sector", "N/A")
             if sector not in sector_data:
                 sector_data[sector] = []
@@ -100,13 +110,46 @@ def get_etf_data():
 
             imported += 1
 
-        # Return the data grouped by sector
-        return jsonify({"sector_data": sector_data})
-    
+        return jsonify({"sector_data": sector_data, "status": "success"})
+
     except Exception as e:
         print(f'Error: {e}')
         print(f'Imported: {imported}')
         return jsonify({"error": "An error occurred while fetching the data."})
+
+    
+@app.route('/api/etf', methods=['GET'])
+def get_etf():
+    try:
+        stock_data = []  # Store data for all stocks
+
+        for symbol in cusip_mapping:
+            print(f"Fetching data for {symbol}")
+            stock = yf.Ticker(symbol)
+            history = stock.history(period="5d", interval="1d")  # Last 5 days of data
+
+            if not history.empty:  # Ensure data exists
+                # Extract closing prices for the last 5 days
+                closing_prices = history['Close'].tolist()
+                yesterday_price = closing_prices[-2] if len(closing_prices) >= 2 else "N/A"
+
+                # Append stock data
+                stock_data.append({
+                    "name": stock.info.get("shortName", "N/A"),
+                    "symbol": symbol,
+                    "sector": stock.info.get("sector", "N/A"),
+                    "industry": stock.info.get("industry", "N/A"),
+                    "closing_prices": closing_prices,  # 5 days of closing prices
+                    "yesterday_price": yesterday_price
+                })
+
+        return jsonify({"data": stock_data, "status": "success"})
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e), "status": "failure"}), 500
+
+    
 
 if __name__ == "__main__":
     app.run(debug=True)
